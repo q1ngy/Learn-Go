@@ -2,9 +2,15 @@ package dao
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
+)
+
+var (
+	EmailDuplicateErr = errors.New("邮箱冲突")
 )
 
 type UserDao struct {
@@ -21,7 +27,14 @@ func (dao *UserDao) Insert(ctx context.Context, user User) error {
 	now := time.Now().UnixMilli()
 	user.CTime = now
 	user.UTime = now
-	return dao.db.WithContext(ctx).Create(&user).Error
+	err := dao.db.WithContext(ctx).Create(&user).Error
+	if sqlError, ok := err.(*mysql.MySQLError); ok {
+		const duplicateErr uint16 = 1062
+		if sqlError.Number == duplicateErr {
+			return EmailDuplicateErr
+		}
+	}
+	return err
 }
 
 type User struct {

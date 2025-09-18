@@ -76,13 +76,17 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		Email:    req.Email,
 		Password: req.Password,
 	})
-	if err != nil {
-		ctx.String(http.StatusOK, "系统错误")
-		return
-	}
 
-	ctx.String(http.StatusOK, "注册成功")
+	switch err {
+	case nil:
+		ctx.String(http.StatusOK, "注册成功")
+	case serivce.EmailDuplicateErr:
+		ctx.String(http.StatusOK, err.Error())
+	default:
+		ctx.String(http.StatusOK, "系统错误")
+	}
 }
+
 func (h *UserHandler) Login(ctx *gin.Context) {
 }
 func (h *UserHandler) Edit(ctx *gin.Context) {
