@@ -5,6 +5,8 @@ import (
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
+	"github.com/q1ngy/Learn-Go/webook/internal/domain"
+	"github.com/q1ngy/Learn-Go/webook/internal/serivce"
 )
 
 const (
@@ -15,12 +17,14 @@ const (
 type UserHandler struct {
 	emailRexExp    *regexp.Regexp
 	passwordRexExp *regexp.Regexp
+	svc            *serivce.UserService
 }
 
-func NewUserHandler() *UserHandler {
+func NewUserHandler(svc *serivce.UserService) *UserHandler {
 	return &UserHandler{
 		emailRexExp:    regexp.MustCompile(emailRegexPattern, regexp.None), // 复用编译好的正则对象
 		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
+		svc:            svc,
 	}
 }
 
@@ -68,7 +72,16 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	ctx.String(http.StatusOK, "Hello World!")
+	err = h.svc.SignUp(ctx, domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+
+	ctx.String(http.StatusOK, "注册成功")
 }
 func (h *UserHandler) Login(ctx *gin.Context) {
 }
