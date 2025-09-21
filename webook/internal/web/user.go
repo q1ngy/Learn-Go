@@ -1,13 +1,13 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/q1ngy/Learn-Go/webook/internal/domain"
 	"github.com/q1ngy/Learn-Go/webook/internal/serivce"
 )
@@ -37,7 +37,8 @@ func NewUserHandler(svc *serivce.UserService) *UserHandler {
 func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 	group := server.Group("/users")
 	group.POST("signup", h.SignUp)
-	group.POST("login", h.Login)
+	//group.POST("login", h.Login)
+	group.POST("login", h.LoginJWT)
 	group.POST("edit", h.Edit)
 	group.GET("profile", h.Profile)
 }
@@ -93,6 +94,38 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	}
 }
 
+func (h *UserHandler) LoginJWT(ctx *gin.Context) {
+	type Req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	u, err := h.svc.Login(ctx, req.Email, req.Password)
+	switch err {
+	case nil:
+		uc := UserClaims{
+			Uid: u.Id,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 5)),
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS512, uc)
+		tokenStr, err := token.SignedString(JWTKey)
+		if err != nil {
+			ctx.String(http.StatusOK, "系统错误")
+		}
+		ctx.Header("x-jwt-token", tokenStr)
+		ctx.String(http.StatusOK, "登录成功")
+	case serivce.ErrInvalidUserOrPassword:
+		ctx.String(http.StatusOK, "用户名或者密码不对")
+	default:
+		ctx.String(http.StatusOK, "系统错误")
+	}
+}
+
 func (h *UserHandler) Login(ctx *gin.Context) {
 	type Req struct {
 		Email    string `json:"email"`
@@ -133,8 +166,10 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 		return
 	}
 
-	sess := sessions.Default(ctx)
-	uid := sess.Get("userId").(int64)
+	//sess := sessions.Default(ctx)
+	//uid := sess.Get("userId").(int64)
+
+	user := ctx.MustGet("user").(UserClaims)
 
 	birthday, err := time.Parse(time.DateOnly, req.Birthday)
 	if err != nil {
@@ -143,7 +178,7 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 	}
 
 	err = h.svc.UpdateNonSensitiveInfo(ctx, domain.User{
-		Id:       uid,
+		Id:       user.Uid,
 		Nickname: req.Nickname,
 		Birthday: birthday,
 		AboutMe:  req.AboutMe,
@@ -156,10 +191,8 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 
 }
 func (h *UserHandler) Profile(ctx *gin.Context) {
-	sess := sessions.Default(ctx)
-	uid := sess.Get("userId").(int64)
-	uid = sess.Get("userId").(int64)
-	fmt.Println(uid)
+	//sess := sessions.Default(ctx)
+	//uid := sess.Get("userId").(int64)
 
 	//idVal, _ := ctx.Get("uid")
 	//uid, ok := idVal.(int64)
@@ -167,6 +200,9 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 	//	ctx.String(http.StatusOK, "系统错误")
 	//	return
 	//}
+
+	u := ctx.MustGet("user").(UserClaims)
+	uid := u.Uid
 
 	user, err := h.svc.FindById(ctx, uid)
 	if err != nil {
@@ -185,4 +221,11 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 		AboutMe:  user.AboutMe,
 		Birthday: user.Birthday.Format(time.DateOnly),
 	})
+}
+
+var JWTKey = []byte("FBW37w0expzAWYvQMurrHpBzexyi8245")
+
+type UserClaims struct {
+	jwt.RegisteredClaims
+	Uid int64
 }

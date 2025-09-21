@@ -17,8 +17,8 @@ func (m *CorsMiddlewareBuilder) Build() gin.HandlerFunc {
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowCredentials: true,
 
-		AllowHeaders: []string{"Content-Type", "Authorization"},
-		//AllowHeaders: []string{"content-type"},
+		AllowHeaders:  []string{"Content-Type", "Authorization"},
+		ExposeHeaders: []string{"x-jwt-token"},
 		//AllowMethods: []string{"POST"},
 		AllowOriginFunc: func(origin string) bool {
 			if strings.HasPrefix(origin, "http://localhost") {

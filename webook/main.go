@@ -35,6 +35,17 @@ func initServer() *gin.Engine {
 	cors := middleware.CorsMiddlewareBuilder{}
 	server.Use(cors.Build())
 
+	//useSession(server)
+	useJWT(server)
+	return server
+}
+
+func useJWT(server *gin.Engine) {
+	login := middleware.LoginJWTMiddlewareBuilder{}
+	server.Use(login.CheckLogin())
+}
+
+func useSession(server *gin.Engine) {
 	login := middleware.LoginMiddlewareBuilder{}
 
 	//store := cookie.NewStore([]byte("secret"))
@@ -45,7 +56,6 @@ func initServer() *gin.Engine {
 		panic(err)
 	}
 	server.Use(sessions.Sessions("ssid", store), login.CheckLogin())
-	return server
 }
 
 func initDB() *gorm.DB {
