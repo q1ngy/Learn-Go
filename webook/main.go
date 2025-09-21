@@ -1,15 +1,14 @@
 package main
 
 import (
-	"strings"
-	"time"
-
-	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/q1ngy/Learn-Go/webook/internal/repository"
 	"github.com/q1ngy/Learn-Go/webook/internal/repository/dao"
 	"github.com/q1ngy/Learn-Go/webook/internal/serivce"
 	"github.com/q1ngy/Learn-Go/webook/internal/web"
+	"github.com/q1ngy/Learn-Go/webook/internal/web/middleware"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -31,23 +30,13 @@ func initUserHandler(db *gorm.DB, server *gin.Engine) {
 
 func initServer() *gin.Engine {
 	server := gin.Default()
-	server.Use(cors.New(cors.Config{
-		//AllowAllOrigins: true,
-		//AllowOrigins:     []string{"http://localhost:3000"},
-		AllowCredentials: true,
 
-		AllowHeaders: []string{"Content-Type"},
-		//AllowHeaders: []string{"content-type"},
-		//AllowMethods: []string{"POST"},
-		AllowOriginFunc: func(origin string) bool {
-			if strings.HasPrefix(origin, "http://localhost") {
-				//if strings.Contains(origin, "localhost") {
-				return true
-			}
-			return strings.Contains(origin, "your_company.com")
-		},
-		MaxAge: 12 * time.Hour,
-	}))
+	cors := middleware.CorsMiddlewareBuilder{}
+	server.Use(cors.Build())
+
+	login := middleware.LoginMiddlewareBuilder{}
+	store := cookie.NewStore([]byte("secret"))
+	server.Use(sessions.Sessions("ssid", store), login.CheckLogin())
 	return server
 }
 

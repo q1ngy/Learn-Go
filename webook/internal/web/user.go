@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	regexp "github.com/dlclark/regexp2"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/q1ngy/Learn-Go/webook/internal/domain"
 	"github.com/q1ngy/Learn-Go/webook/internal/serivce"
@@ -96,9 +97,18 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	if err := ctx.Bind(&req); err != nil {
 		return
 	}
-	_, err := h.svc.Login(ctx, req.Email, req.Password)
+	user, err := h.svc.Login(ctx, req.Email, req.Password)
 	switch err {
 	case nil:
+		sess := sessions.Default(ctx)
+		sess.Options(sessions.Options{
+			MaxAge: 900,
+		})
+		sess.Set("userId", user.Id)
+		err := sess.Save()
+		if err != nil {
+			ctx.String(http.StatusOK, "系统错误")
+		}
 		ctx.String(http.StatusOK, "登录成功")
 	case serivce.ErrInvalidUserOrPassword:
 		ctx.String(http.StatusOK, "用户名或密码错误")
