@@ -107,9 +107,9 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	case nil:
 		sess := sessions.Default(ctx)
 		sess.Options(sessions.Options{
-			MaxAge: 900, // 同时影响 session 时间
+			MaxAge: 10, // 同时影响 session 时间
 		})
-		sess.Set("uid", user.Id)
+		sess.Set("userId", user.Id)
 		err := sess.Save()
 		if err != nil {
 			ctx.String(http.StatusOK, "系统错误")
@@ -134,7 +134,7 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 	}
 
 	sess := sessions.Default(ctx)
-	uid := sess.Get("uid").(int64)
+	uid := sess.Get("userId").(int64)
 
 	birthday, err := time.Parse(time.DateOnly, req.Birthday)
 	if err != nil {
@@ -157,8 +157,8 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 }
 func (h *UserHandler) Profile(ctx *gin.Context) {
 	sess := sessions.Default(ctx)
-	uid := sess.Get("uid").(int64)
-	uid = sess.Get("uid").(int64)
+	uid := sess.Get("userId").(int64)
+	uid = sess.Get("userId").(int64)
 	fmt.Println(uid)
 
 	//idVal, _ := ctx.Get("uid")
