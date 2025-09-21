@@ -47,3 +47,11 @@ func (s *UserService) Login(ctx *gin.Context, email string, password string) (do
 	}
 	return user, nil
 }
+
+func (s *UserService) UpdateNonSensitiveInfo(ctx *gin.Context, user domain.User) error {
+	return s.repo.UpdateNonZeroFields(ctx, user)
+}
+
+func (s *UserService) FindById(ctx *gin.Context, uid int64) (domain.User, error) {
+	return s.repo.FindById(ctx, uid)
+}

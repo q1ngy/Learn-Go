@@ -13,7 +13,7 @@ type LoginMiddlewareBuilder struct {
 func (m *LoginMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.Request.URL.Path
-		if path == "/users/signup" || path == "/users/login" {
+		if path == "/users/signup" || path == "/users/login" || path == "/users/edit" || path == "/users/profile" {
 			return
 		}
 		sess := sessions.Default(ctx)

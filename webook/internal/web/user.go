@@ -1,7 +1,9 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
@@ -13,11 +15,13 @@ import (
 const (
 	emailRegexPattern    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
 	passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
+	birthdayRegexPattern = `^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$`
 )
 
 type UserHandler struct {
 	emailRexExp    *regexp.Regexp
 	passwordRexExp *regexp.Regexp
+	birthdayRexExp *regexp.Regexp
 	svc            *serivce.UserService
 }
 
@@ -25,6 +29,7 @@ func NewUserHandler(svc *serivce.UserService) *UserHandler {
 	return &UserHandler{
 		emailRexExp:    regexp.MustCompile(emailRegexPattern, regexp.None), // 复用编译好的正则对象
 		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
+		birthdayRexExp: regexp.MustCompile(birthdayRegexPattern, regexp.None),
 		svc:            svc,
 	}
 }
@@ -102,12 +107,13 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	case nil:
 		sess := sessions.Default(ctx)
 		sess.Options(sessions.Options{
-			MaxAge: 900,
+			MaxAge: 900, // 同时影响 session 时间
 		})
-		sess.Set("userId", user.Id)
+		sess.Set("uid", user.Id)
 		err := sess.Save()
 		if err != nil {
 			ctx.String(http.StatusOK, "系统错误")
+			return
 		}
 		ctx.String(http.StatusOK, "登录成功")
 	case serivce.ErrInvalidUserOrPassword:
@@ -117,6 +123,66 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	}
 }
 func (h *UserHandler) Edit(ctx *gin.Context) {
+	type Req struct {
+		Nickname string `json:"nickname"`
+		Birthday string `json:"birthday"`
+		AboutMe  string `json:"aboutMe"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+
+	sess := sessions.Default(ctx)
+	uid := sess.Get("uid").(int64)
+
+	birthday, err := time.Parse(time.DateOnly, req.Birthday)
+	if err != nil {
+		ctx.String(http.StatusOK, "生日格式不对")
+		return
+	}
+
+	err = h.svc.UpdateNonSensitiveInfo(ctx, domain.User{
+		Id:       uid,
+		Nickname: req.Nickname,
+		Birthday: birthday,
+		AboutMe:  req.AboutMe,
+	})
+	if err != nil {
+		ctx.String(http.StatusOK, "系统异常")
+		return
+	}
+	ctx.String(http.StatusOK, "修改成功")
+
 }
 func (h *UserHandler) Profile(ctx *gin.Context) {
+	sess := sessions.Default(ctx)
+	uid := sess.Get("uid").(int64)
+	uid = sess.Get("uid").(int64)
+	fmt.Println(uid)
+
+	//idVal, _ := ctx.Get("uid")
+	//uid, ok := idVal.(int64)
+	//if !ok {
+	//	ctx.String(http.StatusOK, "系统错误")
+	//	return
+	//}
+
+	user, err := h.svc.FindById(ctx, uid)
+	if err != nil {
+		ctx.String(http.StatusOK, "系统异常")
+		return
+	}
+	type User struct {
+		Nickname string `json:"nickname"`
+		Email    string `json:"email"`
+		AboutMe  string `json:"aboutMe"`
+		Birthday string `json:"birthday"`
+	}
+	ctx.JSON(http.StatusOK, User{
+		Nickname: user.Nickname,
+		Email:    user.Email,
+		AboutMe:  user.AboutMe,
+		Birthday: user.Birthday.Format(time.DateOnly),
+	})
 }

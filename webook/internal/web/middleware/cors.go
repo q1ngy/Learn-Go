@@ -14,10 +14,10 @@ type CorsMiddlewareBuilder struct {
 func (m *CorsMiddlewareBuilder) Build() gin.HandlerFunc {
 	return cors.New(cors.Config{
 		//AllowAllOrigins: true,
-		//AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowCredentials: true,
 
-		AllowHeaders: []string{"Content-Type"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
 		//AllowHeaders: []string{"content-type"},
 		//AllowMethods: []string{"POST"},
 		AllowOriginFunc: func(origin string) bool {
