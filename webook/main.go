@@ -53,6 +53,7 @@ func initServer() *gin.Engine {
 
 func initDB() *gorm.DB {
 	dsn := "root:123456@tcp(localhost:3306)/webook?charset=utf8&parseTime=True&loc=Local"
+
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
@@ -62,5 +63,6 @@ func initDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	return db
+
+	return db.Debug()
 }

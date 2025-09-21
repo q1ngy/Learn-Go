@@ -5,12 +5,14 @@ import (
 	"errors"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
 var (
-	EmailDuplicateErr = errors.New("邮箱冲突")
+	ErrEmailDuplicate = errors.New("邮箱冲突")
+	ErrRecordNotFound = gorm.ErrRecordNotFound
 )
 
 type UserDao struct {
@@ -31,10 +33,16 @@ func (dao *UserDao) Insert(ctx context.Context, user User) error {
 	if sqlError, ok := err.(*mysql.MySQLError); ok {
 		const duplicateErr uint16 = 1062
 		if sqlError.Number == duplicateErr {
-			return EmailDuplicateErr
+			return ErrEmailDuplicate
 		}
 	}
 	return err
+}
+
+func (dao *UserDao) FindByEmail(ctx *gin.Context, email string) (User, error) {
+	var user User
+	err := dao.db.WithContext(ctx).Where("email=?", email).First(&user).Error
+	return user, err
 }
 
 type User struct {

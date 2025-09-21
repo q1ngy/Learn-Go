@@ -45,3 +45,33 @@ func TestMap(t *testing.T) {
 	})
 	assert.Equal(t, total, count)
 }
+
+func TestNormalMap(t *testing.T) {
+	m := make(map[string]int)
+	var wg sync.WaitGroup
+
+	writers, readers := 4, 4
+	n := 1000
+
+	wg.Add(writers)
+	for w := 0; w < writers; w++ {
+		go func() {
+			defer wg.Done()
+			for i := 0; i < n; i++ {
+				m["k-"+strconv.Itoa(i)] = i // 无锁写
+			}
+		}()
+	}
+
+	wg.Add(readers)
+	for r := 0; r < readers; r++ {
+		go func() {
+			defer wg.Done()
+			for i := 0; i < n; i++ {
+				_ = m["k-"+strconv.Itoa(i)] // 无锁读
+			}
+		}()
+	}
+
+	wg.Wait()
+}
