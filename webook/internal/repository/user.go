@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/q1ngy/Learn-Go/webook/internal/domain"
+	"github.com/q1ngy/Learn-Go/webook/internal/repository/cache"
 	"github.com/q1ngy/Learn-Go/webook/internal/repository/dao"
 )
 
@@ -16,12 +18,14 @@ var (
 )
 
 type UserRepository struct {
-	dao *dao.UserDao
+	dao   *dao.UserDao
+	cache *cache.UserCache
 }
 
-func NewUserRepository(dao *dao.UserDao) *UserRepository {
+func NewUserRepository(dao *dao.UserDao, cache *cache.UserCache) *UserRepository {
 	return &UserRepository{
-		dao: dao,
+		dao:   dao,
+		cache: cache,
 	}
 }
 
@@ -67,10 +71,20 @@ func (repo *UserRepository) UpdateNonZeroFields(ctx *gin.Context, user domain.Us
 }
 
 func (repo *UserRepository) FindById(ctx *gin.Context, uid int64) (domain.User, error) {
+	u, err := repo.cache.Get(ctx, uid)
+	if err == nil {
+		return u, nil
+	}
+
 	user, err := repo.dao.FindById(ctx, uid)
 	if err != nil {
 		return domain.User{}, err
 	}
 	du := repo.toDomain(user)
+
+	err = repo.cache.Set(ctx, du)
+	if err != nil {
+		log.Println("[UserCache]", err)
+	}
 	return du, nil
 }
