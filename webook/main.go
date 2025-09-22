@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -12,9 +10,6 @@ import (
 	"github.com/q1ngy/Learn-Go/webook/internal/serivce"
 	"github.com/q1ngy/Learn-Go/webook/internal/web"
 	"github.com/q1ngy/Learn-Go/webook/internal/web/middleware"
-	"github.com/q1ngy/Learn-Go/webook/pkg/ginx/middleware/ratelimit"
-	"github.com/redis/go-redis/v9"
-
 	//"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -41,12 +36,12 @@ func initServer() *gin.Engine {
 	cors := middleware.CorsMiddlewareBuilder{}
 	server.Use(cors.Build())
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     config.Config.Redis.Addr,
-		Password: config.Config.Redis.Password,
-	})
-	builder := ratelimit.NewBuilder(client, time.Second, 100)
-	server.Use(builder.Build())
+	//client := redis.NewClient(&redis.Options{
+	//	Addr:     config.Config.Redis.Addr,
+	//	Password: config.Config.Redis.Password,
+	//})
+	//builder := ratelimit.NewBuilder(client, time.Second, 100)
+	//server.Use(builder.Build())
 
 	//useSession(server)
 	useJWT(server)

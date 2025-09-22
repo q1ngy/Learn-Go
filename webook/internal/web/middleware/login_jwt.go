@@ -46,10 +46,10 @@ func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 			return
 		}
 
-		if uc.UserAgent != ctx.GetHeader("User-Agent") {
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
+		//if uc.UserAgent != ctx.GetHeader("User-Agent") {
+		//	ctx.AbortWithStatus(http.StatusUnauthorized)
+		//	return
+		//}
 
 		expireTime := uc.ExpiresAt
 		if expireTime.Sub(time.Now()) < time.Second*50 {
