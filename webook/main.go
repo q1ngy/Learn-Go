@@ -45,7 +45,7 @@ func initServer() *gin.Engine {
 		Addr:     config.Config.Redis.Addr,
 		Password: config.Config.Redis.Password,
 	})
-	builder := ratelimit.NewBuilder(client, time.Second, 1)
+	builder := ratelimit.NewBuilder(client, time.Second, 100)
 	server.Use(builder.Build())
 
 	//useSession(server)

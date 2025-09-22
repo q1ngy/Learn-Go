@@ -8,6 +8,6 @@ var Config = config{
 	},
 	Redis: RedisConfig{
 		Addr:     "localhost:6379",
-		Password: "1234567",
+		Password: "123456",
 	},
 }
