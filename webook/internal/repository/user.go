@@ -45,6 +45,7 @@ func (repo *UserRepository) toDomain(user dao.User) domain.User {
 	return domain.User{
 		Id:       user.Id,
 		Email:    user.Email.String,
+		Phone:    user.Phone.String,
 		Password: user.Password,
 		Nickname: user.Nickname,
 		Birthday: time.UnixMilli(user.Birthday),
@@ -58,6 +59,10 @@ func (repo *UserRepository) toEntity(u domain.User) dao.User {
 		Email: sql.NullString{
 			String: u.Email,
 			Valid:  u.Email != "",
+		},
+		Phone: sql.NullString{
+			String: u.Phone,
+			Valid:  u.Phone != "",
 		},
 		Password: u.Password,
 		Birthday: u.Birthday.UnixMilli(),
@@ -87,4 +92,12 @@ func (repo *UserRepository) FindById(ctx *gin.Context, uid int64) (domain.User, 
 		log.Println("[UserCache]", err)
 	}
 	return du, nil
+}
+
+func (repo *UserRepository) FindByPhone(ctx context.Context, phone string) (domain.User, error) {
+	u, err := repo.dao.FindByPhone(ctx, phone)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return repo.toDomain(u), nil
 }

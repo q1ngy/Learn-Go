@@ -61,12 +61,19 @@ func (dao *UserDao) FindById(ctx *gin.Context, uid int64) (User, error) {
 	return user, err
 }
 
+func (dao *UserDao) FindByPhone(ctx context.Context, phone string) (User, error) {
+	var user User
+	err := dao.db.WithContext(ctx).Where("phone = ?", phone).First(&user).Error
+	return user, err
+}
+
 type User struct {
 	Id       int64  `gorm:"primaryKey,autoIncrement"`
 	Nickname string `gorm:"type=varchar(128)"`
 	Birthday int64
 	AboutMe  string         `gorm:"type=varchar(4096)"`
 	Email    sql.NullString `gorm:"unique"`
+	Phone    sql.NullString `gorm:"unique"`
 	Password string
 	//  时区：UTC 0 毫秒
 	CTime int64

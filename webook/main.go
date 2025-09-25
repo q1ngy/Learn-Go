@@ -8,8 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/q1ngy/Learn-Go/webook/internal/config"
 	"github.com/q1ngy/Learn-Go/webook/internal/repository"
+	"github.com/q1ngy/Learn-Go/webook/internal/repository/cache"
 	"github.com/q1ngy/Learn-Go/webook/internal/repository/dao"
-	"github.com/q1ngy/Learn-Go/webook/internal/serivce"
+	"github.com/q1ngy/Learn-Go/webook/internal/service"
+	"github.com/q1ngy/Learn-Go/webook/internal/service/sms/localsms"
 	"github.com/q1ngy/Learn-Go/webook/internal/web"
 	"github.com/q1ngy/Learn-Go/webook/internal/web/middleware"
 	"github.com/q1ngy/Learn-Go/webook/pkg/ginx/middleware/ratelimit"
@@ -23,16 +25,34 @@ import (
 func main() {
 	db := initDB()
 	server := initServer()
-	initUserHandler(db, server)
+	cmd := initRedis()
+
+	smsService := initLocalSMSService()
+	codeService := initCodeService(cmd, smsService)
+
+	initUserHandler(db, cmd, server, codeService)
 	server.Run(":8080")
 }
 
-func initUserHandler(db *gorm.DB, server *gin.Engine) {
+func initUserHandler(db *gorm.DB, cmd redis.Cmdable, server *gin.Engine, codeService service.CodeService) {
 	ud := dao.NewUserDao(db)
-	ur := repository.NewUserRepository(ud, nil)
-	us := serivce.NewUserService(ur)
-	uh := web.NewUserHandler(us)
+	uc := cache.NewUserCache(cmd)
+	ur := repository.NewUserRepository(ud, uc)
+	us := service.NewUserService(ur)
+	uh := web.NewUserHandler(us, &codeService)
 	uh.RegisterRoutes(server)
+}
+
+func initCodeService(cmd redis.Cmdable, smsService *localsms.Service) service.CodeService {
+	cc := cache.NewCodeCache(cmd)
+	cr := repository.NewCodeRepository(cc)
+	cs := service.NewCodeService(cr, smsService)
+	return cs
+}
+
+func initLocalSMSService() *localsms.Service {
+	ss := localsms.NewService()
+	return ss
 }
 
 func initServer() *gin.Engine {
@@ -83,4 +103,12 @@ func initDB() *gorm.DB {
 	}
 
 	return db.Debug()
+}
+
+func initRedis() redis.Cmdable {
+	client := redis.NewClient(&redis.Options{
+		Addr:     config.Config.Redis.Addr,
+		Password: config.Config.Redis.Password,
+	})
+	return client
 }

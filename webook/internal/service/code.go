@@ -1,4 +1,4 @@
-package serivce
+package service
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"math/rand/v2"
 
 	"github.com/q1ngy/Learn-Go/webook/internal/repository"
-	"github.com/q1ngy/Learn-Go/webook/internal/serivce/sms"
+	"github.com/q1ngy/Learn-Go/webook/internal/service/sms"
 )
 
 var ErrCodeSendTooMany = repository.ErrCodeVerifyTooMany
@@ -17,7 +17,7 @@ type CodeService struct {
 	sms  sms.Service
 }
 
-func (s *CodeService) NewCodeService(repo repository.CodeRepository, sms sms.Service) CodeService {
+func NewCodeService(repo repository.CodeRepository, sms sms.Service) CodeService {
 	return CodeService{
 		repo: repo,
 		sms:  sms,

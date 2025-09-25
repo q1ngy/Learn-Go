@@ -1,4 +1,4 @@
-package serivce
+package service
 
 import (
 	"errors"
@@ -54,4 +54,19 @@ func (s *UserService) UpdateNonSensitiveInfo(ctx *gin.Context, user domain.User)
 
 func (s *UserService) FindById(ctx *gin.Context, uid int64) (domain.User, error) {
 	return s.repo.FindById(ctx, uid)
+}
+
+func (s *UserService) FindOrCreate(ctx *gin.Context, phone string) (domain.User, error) {
+	u, err := s.repo.FindByPhone(ctx, phone)
+	if err != repository.ErrUserNotFound {
+		return u, err
+	}
+	err = s.repo.Create(ctx, domain.User{
+		Phone: phone,
+	})
+	if err != nil && !errors.Is(err, repository.EmailDuplicateErr) {
+		return domain.User{}, err
+	}
+	// 可能存在主从延迟，理论上来说应该强制走主库
+	return s.repo.FindByPhone(ctx, phone)
 }
