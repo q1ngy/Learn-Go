@@ -14,13 +14,14 @@ import (
 import "github.com/google/wire"
 
 func InitWebServer() *gin.Engine {
-	wire.Build(ioc.InitDB, ioc.InitRedis,
+	wire.Build(ioc.InitDB, ioc.InitRedis, ioc.InitCache,
 		dao.NewUserDao,
 
 		cache.NewUserCache,
-		cache.NewCodeCache,
+		//cache.NewRedisCodeCache,
+		cache.NewLocalCodeCache,
 
-		repository.NewUserRepository,
+		repository.NewCachedUserRepository,
 		repository.NewCodeRepository,
 
 		ioc.InitSMSService,
