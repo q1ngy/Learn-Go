@@ -25,10 +25,10 @@ type UserHandler struct {
 	passwordRexExp *regexp.Regexp
 	birthdayRexExp *regexp.Regexp
 	svc            *service.UserService
-	codeSvc        *service.CodeService
+	codeSvc        service.CodeService
 }
 
-func NewUserHandler(svc *service.UserService, codeSvc *service.CodeService) *UserHandler {
+func NewUserHandler(svc *service.UserService, codeSvc service.CodeService) *UserHandler {
 	return &UserHandler{
 		emailRexExp:    regexp.MustCompile(emailRegexPattern, regexp.None), // 复用编译好的正则对象
 		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),

@@ -8,10 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CorsMiddlewareBuilder struct {
-}
-
-func (m *CorsMiddlewareBuilder) Build() gin.HandlerFunc {
+func CorsBuild() gin.HandlerFunc {
 	return cors.New(cors.Config{
 		//AllowAllOrigins: true,
 		AllowOrigins:     []string{"http://localhost:3000"},
