@@ -1,9 +1,14 @@
 package main
 
 import (
+	"errors"
+	"slices"
+	"strings"
 	"time"
 
+	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 // Product represents a product in the catalog
@@ -81,80 +86,130 @@ var validCurrencies = []string{"USD", "EUR", "GBP", "JPY", "CAD", "AUD"}
 var validWarehouses = []string{"WH001", "WH002", "WH003", "WH004", "WH005"}
 var nextProductID = 1
 
-// TODO: Implement SKU format validator
+// Implement SKU format validator
 // SKU format: ABC-123-XYZ (3 letters, 3 numbers, 3 letters)
 func isValidSKU(sku string) bool {
-	// TODO: Implement SKU validation
+	// Implement SKU validation
 	// The SKU should match the pattern: ^[A-Z]{3}-\d{3}-[A-Z]{3}$
-	return false
+	pattern := `^[A-Z]{3}-\d{3}-[A-Z]{3}$`
+	re := regexp.MustCompile(pattern, regexp.None)
+	match, _ := re.MatchString(sku)
+	if !match {
+		return false
+	}
+	return true
 }
 
-// TODO: Implement currency validator
+// Implement currency validator
 func isValidCurrency(currency string) bool {
-	// TODO: Check if the currency is in the validCurrencies slice
-	return false
+	// Check if the currency is in the validCurrencies slice
+	return slices.Contains(validCurrencies, currency)
 }
 
-// TODO: Implement category validator
+// Implement category validator
 func isValidCategory(categoryName string) bool {
-	// TODO: Check if the category name exists in the categories slice
+	// Check if the category name exists in the categories slice
+	for _, v := range categories {
+		if categoryName == v.Name {
+			return true
+		}
+	}
 	return false
 }
 
-// TODO: Implement slug format validator
+// Implement slug format validator
 func isValidSlug(slug string) bool {
-	// TODO: Implement slug validation
+	// Implement slug validation
 	// Slug should match: ^[a-z0-9]+(?:-[a-z0-9]+)*$
-	return false
+	pattern := `^[a-z0-9]+(?:-[a-z0-9]+)*$`
+	re := regexp.MustCompile(pattern, regexp.None)
+	b, _ := re.MatchString(slug)
+	return b
 }
 
-// TODO: Implement warehouse code validator
+// Implement warehouse code validator
 func isValidWarehouseCode(code string) bool {
-	// TODO: Check if warehouse code is in validWarehouses slice
+	// Check if warehouse code is in validWarehouses slice
 	// Format should be WH### (e.g., WH001, WH002)
-	return false
+	return slices.Contains(validWarehouses, code)
 }
 
-// TODO: Implement comprehensive product validation
+// Implement comprehensive product validation
 func validateProduct(product *Product) []ValidationError {
-	var errors []ValidationError
+	var errs []ValidationError
 
-	// TODO: Add custom validation logic:
+	// Add custom validation logic:
 	// - Validate SKU format and uniqueness
 	// - Validate currency code
 	// - Validate category exists
 	// - Validate slug format
 	// - Validate warehouse code
 	// - Cross-field validations (reserved <= quantity, etc.)
+	if !isValidSKU(product.SKU) {
+		errs = append(errs, ValidationError{})
+	}
+	if !isValidCurrency(product.Currency) {
+		errs = append(errs, ValidationError{})
+	}
+	if !isValidCategory(product.Category.Name) {
+		errs = append(errs, ValidationError{})
+	}
+	if !isValidSlug(product.Category.Slug) {
+		errs = append(errs, ValidationError{})
+	}
+	if !isValidWarehouseCode(product.Inventory.Location) {
+		errs = append(errs, ValidationError{})
+	}
+	if product.Inventory.Reserved > product.Inventory.Quantity {
+		errs = append(errs, ValidationError{})
+	}
 
-	return errors
+	return errs
 }
 
-// TODO: Implement input sanitization
+// Implement input sanitization
 func sanitizeProduct(product *Product) {
-	// TODO: Sanitize input data:
+	// Sanitize input data:
 	// - Trim whitespace from strings
 	// - Convert currency to uppercase
 	// - Convert slug to lowercase
 	// - Calculate available inventory (quantity - reserved)
 	// - Set timestamps
+
+	product.SKU = strings.Trim(product.SKU, " ")
+	product.Name = strings.Trim(product.Name, " ")
+	product.Currency = strings.ToUpper(product.Currency)
+	product.Category.Slug = strings.ToLower(product.Category.Slug)
+	product.Inventory.Available = product.Inventory.Quantity - product.Inventory.Reserved
+	product.CreatedAt = time.Now()
+	product.UpdatedAt = time.Now()
 }
 
 // POST /products - Create single product
 func createProduct(c *gin.Context) {
 	var product Product
 
-	// TODO: Bind JSON and handle basic validation errors
+	// Bind JSON and handle basic validation errors
 	if err := c.ShouldBindJSON(&product); err != nil {
+		var errs []ValidationError
+		var validationErrors validator.ValidationErrors
+		if errors.As(err, &validationErrors) {
+			for _, e := range validationErrors {
+				errs = append(errs, ValidationError{
+					Field: e.Field(),
+				})
+			}
+		}
+
 		c.JSON(400, APIResponse{
 			Success: false,
 			Message: "Invalid JSON or basic validation failed",
-			Errors:  []ValidationError{}, // TODO: Convert gin validation errors
+			Errors:  errs, // Convert gin validation errors
 		})
 		return
 	}
 
-	// TODO: Apply custom validation
+	// Apply custom validation
 	validationErrors := validateProduct(&product)
 	if len(validationErrors) > 0 {
 		c.JSON(400, APIResponse{
@@ -165,7 +220,7 @@ func createProduct(c *gin.Context) {
 		return
 	}
 
-	// TODO: Sanitize input data
+	// Sanitize input data
 	sanitizeProduct(&product)
 
 	// TODO: Set ID and add to products slice
@@ -279,9 +334,25 @@ func validateSKUEndpoint(c *gin.Context) {
 		return
 	}
 
-	// TODO: Implement SKU validation endpoint
+	// Implement SKU validation endpoint
 	// - Check format using isValidSKU
+	if !isValidSKU(request.SKU) {
+		c.JSON(200, APIResponse{
+			Success: false,
+		})
+		return
+	}
+
 	// - Check uniqueness against existing products
+	for _, p := range products {
+		if p.SKU == request.SKU {
+			c.JSON(200, APIResponse{
+				Success: false,
+			})
+			return
+		}
+
+	}
 
 	c.JSON(200, APIResponse{
 		Success: true,
