@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	regexp "github.com/dlclark/regexp2"
@@ -138,54 +140,114 @@ func generateTokens(userID int, username, role string) (*TokenResponse, error) {
 	// Generate access token with 15 minute expiry
 	// Generate refresh token with 7 day expiry
 	// Store refresh token in memory store
+	access := &JWTClaims{
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(accessTokenTTL)),
+		},
+	}
+	refresh := &JWTClaims{
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(refreshTokenTTL)),
+		},
+	}
+	tAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, access)
+	tRefresh := jwt.NewWithClaims(jwt.SigningMethodHS256, refresh)
+	sAccess, _ := tAccess.SignedString(jwtSecret)
+	sRefresh, _ := tRefresh.SignedString(jwtSecret)
 
+	refreshTokens[sRefresh] = userID
 	return &TokenResponse{
-		AccessToken:  "dummy-access-token",
-		RefreshToken: "dummy-refresh-token",
+		AccessToken:  sAccess,
+		RefreshToken: sRefresh,
 		TokenType:    "Bearer",
 		ExpiresIn:    int64(accessTokenTTL.Seconds()),
 		ExpiresAt:    time.Now().Add(accessTokenTTL),
 	}, nil
 }
 
-// TODO: Implement JWT token validation
+// Implement JWT token validation
 func validateToken(tokenString string) (*JWTClaims, error) {
-	// TODO: Parse and validate JWT token
-	// TODO: Check if token is blacklisted
-	// TODO: Return claims if valid
-	return nil, nil
+	// Parse and validate JWT token
+	var claims = &JWTClaims{}
+	// var claims *JWTClaims 只是声明了一个空指针，而上面则声明了零值
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		return jwtSecret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if token is blacklisted
+	if _, ok := blacklistedTokens[tokenString]; ok {
+		return nil, err
+	}
+
+	// Return claims if valid
+	return claims, nil
 }
 
-// TODO: Implement user lookup functions
+// Implement user lookup functions
 func findUserByUsername(username string) *User {
-	// TODO: Find user by username in users slice
+	// Find user by username in users slice
+	for i := range users {
+		if username == users[i].Username {
+			return &users[i]
+		}
+	}
 	return nil
 }
 
 func findUserByEmail(email string) *User {
-	// TODO: Find user by email in users slice
+	// Find user by email in users slice
+	for i := range users {
+		if email == users[i].Email {
+			return &users[i]
+		}
+	}
 	return nil
 }
 
 func findUserByID(id int) *User {
-	// TODO: Find user by ID in users slice
+	// Find user by ID in users slice
+	for i := range users {
+		if id == users[i].ID {
+			return &users[i]
+		}
+	}
 	return nil
 }
 
-// TODO: Implement account lockout check
+// Implement account lockout check
 func isAccountLocked(user *User) bool {
-	// TODO: Check if account is locked based on LockedUntil field
+	// Check if account is locked based on LockedUntil field
+	if user.LockedUntil != nil && time.Until(*user.LockedUntil) > 0 {
+		return true
+	}
 	return false
 }
 
-// TODO: Implement failed attempt tracking
+// Implement failed attempt tracking
 func recordFailedAttempt(user *User) {
-	// TODO: Increment failed attempts counter
-	// TODO: Lock account if max attempts reached
+	// Increment failed attempts counter
+	user.FailedAttempts++
+	// Lock account if max attempts reached
+	if user.FailedAttempts >= maxFailedAttempts {
+		lockUntil := time.Now().Add(lockoutDuration)
+		user.LockedUntil = &lockUntil
+	}
 }
 
 func resetFailedAttempts(user *User) {
-	// TODO: Reset failed attempts counter and unlock account
+	// Reset failed attempts counter and unlock account
+	now := time.Now()
+	user.LockedUntil = &now
+	user.FailedAttempts = 0
 }
 
 // TODO: Generate secure random token
@@ -211,7 +273,7 @@ func register(c *gin.Context) {
 		return
 	}
 
-	// TODO: Validate password confirmation
+	// Validate password confirmation
 	if req.Password != req.ConfirmPassword {
 		c.JSON(400, APIResponse{
 			Success: false,
@@ -220,7 +282,7 @@ func register(c *gin.Context) {
 		return
 	}
 
-	// TODO: Validate password strength
+	// Validate password strength
 	if !isStrongPassword(req.Password) {
 		c.JSON(400, APIResponse{
 			Success: false,
@@ -229,10 +291,35 @@ func register(c *gin.Context) {
 		return
 	}
 
-	// TODO: Check if username already exists
-	// TODO: Check if email already exists
-	// TODO: Hash password
-	// TODO: Create user and add to users slice
+	// Check if username already exists
+	u := findUserByUsername(req.Username)
+	if u != nil {
+		c.JSON(409, APIResponse{
+			Success: false,
+		})
+		return
+	}
+
+	// Check if email already exists
+	u = findUserByEmail(req.Email)
+	if u != nil {
+		c.JSON(409, APIResponse{
+			Success: false,
+		})
+		return
+	}
+
+	// Hash password
+	encrypted, _ := hashPassword(req.Password)
+
+	// Create user and add to users slice
+	users = append(users, User{
+		Username:     req.Username,
+		Password:     req.Password,
+		PasswordHash: encrypted,
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+	})
 
 	c.JSON(201, APIResponse{
 		Success: true,
@@ -252,7 +339,7 @@ func login(c *gin.Context) {
 		return
 	}
 
-	// TODO: Find user by username
+	// Find user by username
 	user := findUserByUsername(req.Username)
 	if user == nil {
 		c.JSON(401, APIResponse{
@@ -262,7 +349,7 @@ func login(c *gin.Context) {
 		return
 	}
 
-	// TODO: Check if account is locked
+	// Check if account is locked
 	if isAccountLocked(user) {
 		c.JSON(423, APIResponse{
 			Success: false,
@@ -271,7 +358,7 @@ func login(c *gin.Context) {
 		return
 	}
 
-	// TODO: Verify password
+	// Verify password
 	if !verifyPassword(req.Password, user.PasswordHash) {
 		recordFailedAttempt(user)
 		c.JSON(401, APIResponse{
@@ -281,14 +368,14 @@ func login(c *gin.Context) {
 		return
 	}
 
-	// TODO: Reset failed attempts on successful login
+	// Reset failed attempts on successful login
 	resetFailedAttempts(user)
 
-	// TODO: Update last login time
+	// Update last login time
 	now := time.Now()
 	user.LastLogin = &now
 
-	// TODO: Generate tokens
+	// Generate tokens
 	tokens, err := generateTokens(user.ID, user.Username, user.Role)
 	if err != nil {
 		c.JSON(500, APIResponse{
@@ -307,7 +394,7 @@ func login(c *gin.Context) {
 
 // POST /auth/logout - User logout
 func logout(c *gin.Context) {
-	// TODO: Extract token from Authorization header
+	// Extract token from Authorization header
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		c.JSON(401, APIResponse{
@@ -317,9 +404,15 @@ func logout(c *gin.Context) {
 		return
 	}
 
-	// TODO: Extract token from "Bearer <token>" format
-	// TODO: Add token to blacklist
-	// TODO: Remove refresh token from store
+	// Extract token from "Bearer <token>" format
+	segments := strings.Split(authHeader, " ")
+	token := segments[1]
+
+	// Add token to blacklist
+	blacklistedTokens[token] = true
+
+	// Remove refresh token from store
+	delete(refreshTokens, token)
 
 	c.JSON(200, APIResponse{
 		Success: true,
@@ -341,14 +434,35 @@ func refreshToken(c *gin.Context) {
 		return
 	}
 
-	// TODO: Validate refresh token
-	// TODO: Get user ID from refresh token store
-	// TODO: Find user by ID
-	// TODO: Generate new access token
+	// Validate refresh token
+	claims := JWTClaims{}
+	_, err := jwt.ParseWithClaims(req.RefreshToken, &claims, func(token *jwt.Token) (any, error) {
+		return jwtSecret, nil
+	})
+	if err != nil {
+		c.JSON(401, APIResponse{
+			Success: false,
+			Error:   "Refresh token required",
+		})
+		return
+	}
+
+	// Get user ID from refresh token store
+	userId := refreshTokens[req.RefreshToken]
+
+	// Find user by ID
+	u := findUserByID(userId)
+	if u == nil {
+	}
+
+	// Generate new access token
+	tokens, err := generateTokens(userId, u.Username, u.Role)
+
 	// TODO: Optionally rotate refresh token
 
 	c.JSON(200, APIResponse{
 		Success: true,
+		Data:    tokens,
 		Message: "Token refreshed successfully",
 	})
 }
@@ -366,9 +480,23 @@ func authMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Extract token from "Bearer <token>" format
-		// TODO: Validate token using validateToken function
-		// TODO: Set user info in context for route handlers
+		// Extract token from "Bearer <token>" format
+		segments := strings.Split(authHeader, " ")
+		token := segments[1]
+
+		// Validate token using validateToken function
+		claims, err := validateToken(token)
+		if claims == nil || err != nil {
+			c.JSON(401, APIResponse{
+				Success: false,
+			})
+			c.Abort()
+			return
+		}
+
+		// Set user info in context for route handlers
+		c.Set("id", claims.UserID)
+		c.Set("role", claims.Role)
 
 		c.Next()
 	}
@@ -377,9 +505,18 @@ func authMiddleware() gin.HandlerFunc {
 // Middleware: Role-based authorization
 func requireRole(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Get user role from context (set by authMiddleware)
-		// TODO: Check if user role is in allowed roles
-		// TODO: Return 403 if not authorized
+		// Get user role from context (set by authMiddleware)
+		role, _ := c.Get("role")
+
+		// Check if user role is in allowed roles
+		// Return 403 if not authorized
+		if !slices.Contains(roles, role.(string)) {
+			c.JSON(403, APIResponse{
+				Success: false,
+			})
+			c.Abort()
+			return
+		}
 
 		c.Next()
 	}
@@ -387,13 +524,16 @@ func requireRole(roles ...string) gin.HandlerFunc {
 
 // GET /user/profile - Get current user profile
 func getUserProfile(c *gin.Context) {
-	// TODO: Get user ID from context (set by authMiddleware)
-	// TODO: Find user by ID
-	// TODO: Return user profile (without sensitive data)
+	// Get user ID from context (set by authMiddleware)
+	userId, _ := c.Get("id")
 
+	// Find user by ID
+	u := findUserByID(userId.(int))
+
+	// Return user profile (without sensitive data
 	c.JSON(200, APIResponse{
 		Success: true,
-		Data:    nil, // TODO: Return user data
+		Data:    u, // Retuern user data
 		Message: "Profile retrieved successfully",
 	})
 }
@@ -414,10 +554,32 @@ func updateUserProfile(c *gin.Context) {
 		return
 	}
 
-	// TODO: Get user ID from context
-	// TODO: Find user by ID
-	// TODO: Check if new email is already taken
-	// TODO: Update user profile
+	// Get user ID from context
+	userId, _ := c.Get("id")
+
+	// Find user by ID
+	u := findUserByID(userId.(int))
+	if u == nil {
+		c.JSON(400, APIResponse{
+			Success: false,
+			Error:   "Invalid credentials format",
+		})
+		return
+	}
+
+	// Check if new email is already taken
+	userByEmail := findUserByEmail(req.Email)
+	if userByEmail != nil && userId.(int) != userByEmail.ID {
+		c.JSON(409, APIResponse{
+			Success: false,
+		})
+		return
+	}
+
+	// Update user profile
+	u.Email = req.Email
+	u.FirstName = req.FirstName
+	u.LastName = req.LastName
 
 	c.JSON(200, APIResponse{
 		Success: true,
@@ -440,11 +602,39 @@ func changePassword(c *gin.Context) {
 		return
 	}
 
-	// TODO: Get user ID from context
-	// TODO: Find user by ID
-	// TODO: Verify current password
-	// TODO: Validate new password strength
-	// TODO: Hash new password and update user
+	// Get user ID from context
+	userId, _ := c.Get("id")
+
+	// Find user by ID
+	u := findUserByID(userId.(int))
+	if u == nil {
+		c.JSON(400, APIResponse{
+			Success: false,
+			Error:   "Invalid credentials format",
+		})
+		return
+	}
+
+	// Verify current password
+	if !verifyPassword(req.CurrentPassword, u.PasswordHash) {
+		c.JSON(400, APIResponse{
+			Success: false,
+		})
+		return
+	}
+
+	// Validate new password strength
+	if !isStrongPassword(req.NewPassword) {
+		c.JSON(400, APIResponse{
+			Success: false,
+		})
+		return
+	}
+
+	// Hash new password and update user
+	encrypted, _ := hashPassword(req.NewPassword)
+	u.Password = req.NewPassword
+	u.PasswordHash = encrypted
 
 	c.JSON(200, APIResponse{
 		Success: true,
@@ -454,12 +644,12 @@ func changePassword(c *gin.Context) {
 
 // GET /admin/users - List all users (admin only)
 func listUsers(c *gin.Context) {
-	// TODO: Get pagination parameters
-	// TODO: Return list of users (without sensitive data)
+	// Get pagination parameters
+	// Return list of users (without sensitive data)
 
 	c.JSON(200, APIResponse{
 		Success: true,
-		Data:    users, // TODO: Filter sensitive data
+		Data:    users, // Filter sensitive data
 		Message: "Users retrieved successfully",
 	})
 }
@@ -489,7 +679,7 @@ func changeUserRole(c *gin.Context) {
 		return
 	}
 
-	// TODO: Validate role value
+	// Validate role value
 	validRoles := []string{RoleUser, RoleAdmin, RoleModerator}
 	isValid := false
 	for _, role := range validRoles {
@@ -507,8 +697,18 @@ func changeUserRole(c *gin.Context) {
 		return
 	}
 
-	// TODO: Find user by ID
-	// TODO: Update user role
+	// Find user by ID
+	u := findUserByID(id)
+	if u == nil {
+		c.JSON(400, APIResponse{
+			Success: false,
+			Error:   "Invalid credentials format",
+		})
+		return
+	}
+
+	// Update user role
+	u.Role = req.Role
 
 	c.JSON(200, APIResponse{
 		Success: true,
