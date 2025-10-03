@@ -1,0 +1,326 @@
+{
+	"info": {
+		"_postman_id": "d7c62237-c334-42d7-92d8-355dd2220860",
+		"name": "blog",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12790852"
+	},
+	"item": [
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "ssid=MTc1ODQ0OTUxMXxEWDhFQVFMX2dBQUJFQUVRQUFBY180QUFBUVp6ZEhKcGJtY01CUUFEZFdsa0JXbHVkRFkwQkFJQUJnPT184RdYlNRohW8RrpYak-0PCq7LPLEJGPHUTgPTua86NPM=",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"slim\",\n    \"email\": \"123@123.com\",\n    \"password\": \"12345678\",\n    \"confirm_password\": \"12345678\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip}}/user/register",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"slim\",\n    \"password\": \"12345678\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip}}/user/login",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "blog create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InNsaW0iLCJleHAiOjE3NTk1Mjc5MTR9.HW95FEwsMbQX0yx1bFmHjyyhfmZilQnffYQFkAilDhk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"456\",\n    \"content\": \"456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip}}/post/create",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"post",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "blog get",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\n}"
+				},
+				"url": {
+					"raw": "{{ip}}/post/1",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"post",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "blog get all",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\n}"
+				},
+				"url": {
+					"raw": "{{ip}}/post/all",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"post",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "blog update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InNsaW0iLCJleHAiOjE3NTk1Mjc5MTR9.HW95FEwsMbQX0yx1bFmHjyyhfmZilQnffYQFkAilDhk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"12345\",\n    \"content\": \"12345\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip}}/post/1",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"post",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "blog delete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InNsaW0iLCJleHAiOjE3NTk1Mjc5MTR9.HW95FEwsMbQX0yx1bFmHjyyhfmZilQnffYQFkAilDhk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"12345\",\n    \"content\": \"12345\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip}}/post/1",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"post",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "comment create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InNsaW0iLCJleHAiOjE3NTk1Mjc5MTR9.HW95FEwsMbQX0yx1bFmHjyyhfmZilQnffYQFkAilDhk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"456\",\n    \"content\": \"456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip}}/post/create",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"post",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "comment create Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InNsaW0iLCJleHAiOjE3NTk1Mjc5MTR9.HW95FEwsMbQX0yx1bFmHjyyhfmZilQnffYQFkAilDhk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"456\",\n    \"content\": \"456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip}}/post/create",
+					"host": [
+						"{{ip}}"
+					],
+					"path": [
+						"post",
+						"create"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
