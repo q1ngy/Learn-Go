@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 	"time"
@@ -94,7 +95,7 @@ func GetTopUsersByPostCount(db *gorm.DB, limit int) ([]User, error) {
 func GetPostsByCategoryWithUserInfo(db *gorm.DB, category string, page, pageSize int) ([]Post, int64, error) {
 	// Implement paginated posts retrieval with user info
 	if page < 1 {
-		return nil, 0, nil
+		return nil, 0, errors.New("illegal")
 	}
 	offset := (page - 1) * pageSize
 	var posts []Post
@@ -108,7 +109,10 @@ func GetPostsByCategoryWithUserInfo(db *gorm.DB, category string, page, pageSize
 func GetUserEngagementStats(db *gorm.DB, userID uint) (map[string]interface{}, error) {
 	// Implement user engagement statistics
 	var user User
-	db.Preload("Posts.Likes").Preload("Likes").First(&user, userID)
+	result := db.Preload("Posts.Likes").Preload("Likes").First(&user, userID)
+	if result.RowsAffected == 0 {
+		return nil, errors.New("not found")
+	}
 	stat := make(map[string]interface{}, 4)
 	stat["total_posts"] = len(user.Posts)
 	stat["total_likes_given"] = len(user.Likes)
@@ -167,12 +171,27 @@ func GetCountryUserStats(db *gorm.DB) ([]map[string]interface{}, error) {
 
 // SearchPostsByContent searches posts by content using full-text search
 func SearchPostsByContent(db *gorm.DB, query string, limit int) ([]Post, error) {
-	// TODO: Implement full-text search
-	return nil, nil
+	// Implement full-text search
+	var posts []Post
+	db.Model(&Post{}).Where("content like ?", "%"+query+"%").Limit(limit).Find(&posts)
+	return posts, nil
 }
 
 // GetUserRecommendations retrieves user recommendations based on similar interests
 func GetUserRecommendations(db *gorm.DB, userID uint, limit int) ([]User, error) {
-	// TODO: Implement user recommendations algorithm
-	return nil, nil
+	// Implement user recommendations algorithm
+	// select id, group_concat(user_id order by user_id separator ',') from likes group by id
+	var user User
+	db.Preload("Likes").First(&user, userID)
+	var postIds []uint
+	for _, like := range user.Likes {
+		postIds = append(postIds, like.PostID)
+	}
+	var likes []Like
+	db.Preload("User").Model(&Like{}).Where("post_id in ? and user_id != ?", postIds, userID).Limit(limit).Find(&likes)
+	var users []User
+	for _, like := range likes {
+		users = append(users, like.User)
+	}
+	return users, nil
 }
