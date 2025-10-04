@@ -17,6 +17,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.32
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.1.0
+	go.uber.org/mock v0.5.0
 	golang.org/x/crypto v0.42.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.31.0
@@ -38,7 +39,6 @@ require (
 	github.com/go-playground/validator/v10 v10.27.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/context v1.1.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.4.0 // indirect
@@ -57,14 +57,12 @@ require (
 	github.com/quic-go/quic-go v0.54.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
-	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/arch v0.21.0 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
-	golang.org/x/time v0.13.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
