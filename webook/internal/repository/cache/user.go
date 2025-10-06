@@ -1,18 +1,18 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/q1ngy/Learn-Go/webook/internal/domain"
 	"github.com/redis/go-redis/v9"
 )
 
 type UserCache interface {
-	Get(ctx *gin.Context, uid int64) (domain.User, error)
-	Set(ctx *gin.Context, du domain.User) error
+	Get(ctx context.Context, uid int64) (domain.User, error)
+	Set(ctx context.Context, du domain.User) error
 }
 
 type RedisUserCache struct {
@@ -27,7 +27,7 @@ func NewUserCache(cmd redis.Cmdable) UserCache {
 	}
 }
 
-func (uc *RedisUserCache) Get(ctx *gin.Context, uid int64) (domain.User, error) {
+func (uc *RedisUserCache) Get(ctx context.Context, uid int64) (domain.User, error) {
 	key := uc.key(uid)
 	result, err := uc.cmd.Get(ctx, key).Result()
 	if err != nil {
@@ -42,7 +42,7 @@ func (uc *RedisUserCache) key(uid int64) string {
 	return fmt.Sprintf("user:info:%d", uid)
 }
 
-func (uc *RedisUserCache) Set(ctx *gin.Context, du domain.User) error {
+func (uc *RedisUserCache) Set(ctx context.Context, du domain.User) error {
 	key := uc.key(du.Id)
 	data, err := json.Marshal(du)
 	if err != nil {

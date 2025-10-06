@@ -10,9 +10,9 @@
 package cachemocks
 
 import (
+	context "context"
 	reflect "reflect"
 
-	gin "github.com/gin-gonic/gin"
 	domain "github.com/q1ngy/Learn-Go/webook/internal/domain"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,7 +42,7 @@ func (m *MockUserCache) EXPECT() *MockUserCacheMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockUserCache) Get(ctx *gin.Context, uid int64) (domain.User, error) {
+func (m *MockUserCache) Get(ctx context.Context, uid int64) (domain.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, uid)
 	ret0, _ := ret[0].(domain.User)
@@ -57,7 +57,7 @@ func (mr *MockUserCacheMockRecorder) Get(ctx, uid any) *gomock.Call {
 }
 
 // Set mocks base method.
-func (m *MockUserCache) Set(ctx *gin.Context, du domain.User) error {
+func (m *MockUserCache) Set(ctx context.Context, du domain.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Set", ctx, du)
 	ret0, _ := ret[0].(error)

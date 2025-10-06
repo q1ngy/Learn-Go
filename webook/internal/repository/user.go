@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/q1ngy/Learn-Go/webook/internal/domain"
 	"github.com/q1ngy/Learn-Go/webook/internal/repository/cache"
 	"github.com/q1ngy/Learn-Go/webook/internal/repository/dao"
@@ -19,10 +18,10 @@ var (
 
 type UserRepository interface {
 	Create(ctx context.Context, user domain.User) error
-	FindByEmail(ctx *gin.Context, email string) (domain.User, error)
-	FindById(ctx *gin.Context, uid int64) (domain.User, error)
+	FindByEmail(ctx context.Context, email string) (domain.User, error)
+	FindById(ctx context.Context, uid int64) (domain.User, error)
 	FindByPhone(ctx context.Context, phone string) (domain.User, error)
-	UpdateNonZeroFields(ctx *gin.Context, user domain.User) error
+	UpdateNonZeroFields(ctx context.Context, user domain.User) error
 }
 
 type CachedUserRepository struct {
@@ -41,7 +40,7 @@ func (repo *CachedUserRepository) Create(ctx context.Context, user domain.User) 
 	return repo.dao.Insert(ctx, repo.toEntity(user))
 }
 
-func (repo *CachedUserRepository) FindByEmail(ctx *gin.Context, email string) (domain.User, error) {
+func (repo *CachedUserRepository) FindByEmail(ctx context.Context, email string) (domain.User, error) {
 	user, err := repo.dao.FindByEmail(ctx, email)
 	if err != nil {
 		return domain.User{}, err
@@ -58,6 +57,7 @@ func (repo *CachedUserRepository) toDomain(user dao.User) domain.User {
 		Nickname: user.Nickname,
 		Birthday: time.UnixMilli(user.Birthday),
 		AboutMe:  user.AboutMe,
+		CTime:    time.UnixMilli(user.CTime),
 	}
 }
 
@@ -79,11 +79,11 @@ func (repo *CachedUserRepository) toEntity(u domain.User) dao.User {
 	}
 }
 
-func (repo *CachedUserRepository) UpdateNonZeroFields(ctx *gin.Context, user domain.User) error {
+func (repo *CachedUserRepository) UpdateNonZeroFields(ctx context.Context, user domain.User) error {
 	return repo.dao.UpdateById(ctx, repo.toEntity(user))
 }
 
-func (repo *CachedUserRepository) FindById(ctx *gin.Context, uid int64) (domain.User, error) {
+func (repo *CachedUserRepository) FindById(ctx context.Context, uid int64) (domain.User, error) {
 	u, err := repo.cache.Get(ctx, uid)
 	if err == nil {
 		return u, nil

@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gin "github.com/gin-gonic/gin"
 	domain "github.com/q1ngy/Learn-Go/webook/internal/domain"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -57,7 +56,7 @@ func (mr *MockUserRepositoryMockRecorder) Create(ctx, user any) *gomock.Call {
 }
 
 // FindByEmail mocks base method.
-func (m *MockUserRepository) FindByEmail(ctx *gin.Context, email string) (domain.User, error) {
+func (m *MockUserRepository) FindByEmail(ctx context.Context, email string) (domain.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByEmail", ctx, email)
 	ret0, _ := ret[0].(domain.User)
@@ -72,7 +71,7 @@ func (mr *MockUserRepositoryMockRecorder) FindByEmail(ctx, email any) *gomock.Ca
 }
 
 // FindById mocks base method.
-func (m *MockUserRepository) FindById(ctx *gin.Context, uid int64) (domain.User, error) {
+func (m *MockUserRepository) FindById(ctx context.Context, uid int64) (domain.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindById", ctx, uid)
 	ret0, _ := ret[0].(domain.User)
@@ -102,7 +101,7 @@ func (mr *MockUserRepositoryMockRecorder) FindByPhone(ctx, phone any) *gomock.Ca
 }
 
 // UpdateNonZeroFields mocks base method.
-func (m *MockUserRepository) UpdateNonZeroFields(ctx *gin.Context, user domain.User) error {
+func (m *MockUserRepository) UpdateNonZeroFields(ctx context.Context, user domain.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateNonZeroFields", ctx, user)
 	ret0, _ := ret[0].(error)

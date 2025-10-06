@@ -10,5 +10,5 @@ type User struct {
 	Phone    string
 	Password string
 	AboutMe  string
-	Ctime    time.Time
+	CTime    time.Time
 }

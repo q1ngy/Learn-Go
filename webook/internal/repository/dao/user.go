@@ -6,7 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
@@ -18,10 +17,10 @@ var (
 
 type UserDao interface {
 	Insert(ctx context.Context, user User) error
-	FindByEmail(ctx *gin.Context, email string) (User, error)
-	FindById(ctx *gin.Context, uid int64) (User, error)
+	FindByEmail(ctx context.Context, email string) (User, error)
+	FindById(ctx context.Context, uid int64) (User, error)
 	FindByPhone(ctx context.Context, phone string) (User, error)
-	UpdateById(ctx *gin.Context, entity User) error
+	UpdateById(ctx context.Context, entity User) error
 }
 
 type GORMUserDao struct {
@@ -48,13 +47,13 @@ func (dao *GORMUserDao) Insert(ctx context.Context, user User) error {
 	return err
 }
 
-func (dao *GORMUserDao) FindByEmail(ctx *gin.Context, email string) (User, error) {
+func (dao *GORMUserDao) FindByEmail(ctx context.Context, email string) (User, error) {
 	var user User
 	err := dao.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 	return user, err
 }
 
-func (dao *GORMUserDao) UpdateById(ctx *gin.Context, entity User) error {
+func (dao *GORMUserDao) UpdateById(ctx context.Context, entity User) error {
 	return dao.db.WithContext(ctx).Model(&entity).Where("id = ?", entity.Id).
 		Updates(map[string]any{
 			"nickname": entity.Nickname,
@@ -63,7 +62,7 @@ func (dao *GORMUserDao) UpdateById(ctx *gin.Context, entity User) error {
 		}).Error
 }
 
-func (dao *GORMUserDao) FindById(ctx *gin.Context, uid int64) (User, error) {
+func (dao *GORMUserDao) FindById(ctx context.Context, uid int64) (User, error) {
 	var user User
 	err := dao.db.WithContext(ctx).Where("id = ?", uid).First(&user).Error
 	return user, err

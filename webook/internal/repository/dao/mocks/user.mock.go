@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gin "github.com/gin-gonic/gin"
 	dao "github.com/q1ngy/Learn-Go/webook/internal/repository/dao"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -43,7 +42,7 @@ func (m *MockUserDao) EXPECT() *MockUserDaoMockRecorder {
 }
 
 // FindByEmail mocks base method.
-func (m *MockUserDao) FindByEmail(ctx *gin.Context, email string) (dao.User, error) {
+func (m *MockUserDao) FindByEmail(ctx context.Context, email string) (dao.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByEmail", ctx, email)
 	ret0, _ := ret[0].(dao.User)
@@ -58,7 +57,7 @@ func (mr *MockUserDaoMockRecorder) FindByEmail(ctx, email any) *gomock.Call {
 }
 
 // FindById mocks base method.
-func (m *MockUserDao) FindById(ctx *gin.Context, uid int64) (dao.User, error) {
+func (m *MockUserDao) FindById(ctx context.Context, uid int64) (dao.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindById", ctx, uid)
 	ret0, _ := ret[0].(dao.User)
@@ -102,7 +101,7 @@ func (mr *MockUserDaoMockRecorder) Insert(ctx, user any) *gomock.Call {
 }
 
 // UpdateById mocks base method.
-func (m *MockUserDao) UpdateById(ctx *gin.Context, entity dao.User) error {
+func (m *MockUserDao) UpdateById(ctx context.Context, entity dao.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateById", ctx, entity)
 	ret0, _ := ret[0].(error)
