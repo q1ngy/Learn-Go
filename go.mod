@@ -66,4 +66,5 @@ require (
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopl.io v0.0.0-20211004154805-1ae3ec64947b // indirect
 )
