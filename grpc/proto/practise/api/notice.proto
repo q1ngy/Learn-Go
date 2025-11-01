@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api;
 
-option go_package = "oneof/api";
+option go_package = "practise/api";
 
 // 通知读者的消息
 message NoticeReaderRequest{

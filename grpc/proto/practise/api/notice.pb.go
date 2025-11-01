@@ -122,7 +122,7 @@ const file_notice_proto_rawDesc = "" +
 	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x12\x16\n" +
 	"\x05phone\x18\x03 \x01(\tH\x00R\x05phoneB\f\n" +
 	"\n" +
-	"notice_wayB\vZ\toneof/apib\x06proto3"
+	"notice_wayB\x0eZ\fpractise/apib\x06proto3"
 
 var (
 	file_notice_proto_rawDescOnce sync.Once

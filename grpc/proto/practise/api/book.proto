@@ -1,0 +1,14 @@
+syntax = "proto3";
+import "google/protobuf/wrappers.proto";
+
+package api;
+
+option go_package = "practise/api";
+
+message Book {
+  string title = 1;
+//  int64 price = 2;
+  google.protobuf.Int64Value price = 2;
+  google.protobuf.StringValue author = 3;
+  optional string note = 4;
+}

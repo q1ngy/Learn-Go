@@ -1,0 +1,27 @@
+syntax = "proto3";
+import "google/protobuf/field_mask.proto";
+
+package api;
+
+option go_package = "practise/api";
+
+message User {
+  string username = 1;
+  string password = 2;
+  int32 gender = 3;
+  int32 age = 4;
+  string ip = 5;
+  Friend friend = 6;
+
+  message Friend {
+    string a = 1;
+    string b = 2;
+  }
+}
+
+message UpdateUserReq {
+  string op = 1; // 操作人
+  User user = 2;
+
+  google.protobuf.FieldMask update_mask = 3;
+}
