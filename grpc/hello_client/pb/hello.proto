@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "hello_client/pb";
+
+package pb;
+
+service Greeter {
+  rpc SayHello(HelloReq) returns (HelloResp) {}
+}
+
+message HelloReq {
+  string name = 1; // 字段序号
+}
+
+message HelloResp {
+  string reply = 1;
+}

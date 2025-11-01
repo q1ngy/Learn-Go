@@ -16,7 +16,7 @@ func (c *Cat) Eat() {
 }
 
 func main() {
-	// var a Animal = Cat{}
+	//var a Animal = Cat{}
 	var b Animal = &Cat{}
 	fmt.Println(b)
 }

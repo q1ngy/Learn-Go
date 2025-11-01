@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package book;
+
+option go_package = "demo/pb/book";
+
+message Price {
+  double market_price = 1;
+  double sale_price = 2;
+}

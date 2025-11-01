@@ -1,4 +1,4 @@
-package ch4
+package main
 
 type Point struct {
 	X, Y int
