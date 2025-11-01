@@ -7,11 +7,12 @@
 package pb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -119,7 +120,7 @@ const file_pb_hello_proto_rawDesc = "" +
 	"\tHelloResp\x12\x14\n" +
 	"\x05reply\x18\x01 \x01(\tR\x05reply24\n" +
 	"\aGreeter\x12)\n" +
-	"\bSayHello\x12\f.pb.HelloReq\x1a\r.pb.HelloResp\"\x00B\x11Z\x0fhello_client/pbb\x06proto3"
+	"\bSayHello\x12\f.pb.HelloReq\x1a\r.pb.HelloResp\"\x00B\x11Z\x0fhello_server/pbb\x06proto3"
 
 var (
 	file_pb_hello_proto_rawDescOnce sync.Once
