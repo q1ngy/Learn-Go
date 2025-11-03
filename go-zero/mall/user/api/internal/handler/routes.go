@@ -6,8 +6,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/q1ngy/Learn-Go/api/demo/internal/svc"
-
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/svc"
 	"github.com/zeromicro/go-zero/rest"
 )
 
@@ -15,10 +14,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
-				Method:  http.MethodGet,
-				Path:    "/from/:name",
-				Handler: DemoHandler(serverCtx),
+				Method:  http.MethodPost,
+				Path:    "/user/signup",
+				Handler: SignupHandler(serverCtx),
 			},
 		},
+		rest.WithPrefix("/api"),
 	)
 }

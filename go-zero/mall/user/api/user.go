@@ -7,15 +7,14 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/q1ngy/Learn-Go/api/demo/internal/config"
-	"github.com/q1ngy/Learn-Go/api/demo/internal/handler"
-	"github.com/q1ngy/Learn-Go/api/demo/internal/svc"
-
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/config"
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/handler"
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/svc"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
 )
 
-var configFile = flag.String("f", "etc/demo-api.yaml", "the config file")
+var configFile = flag.String("f", "etc/user-api.yaml", "the config file")
 
 func main() {
 	flag.Parse()

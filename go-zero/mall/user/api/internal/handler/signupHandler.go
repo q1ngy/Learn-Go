@@ -6,22 +6,22 @@ package handler
 import (
 	"net/http"
 
-	"github.com/q1ngy/Learn-Go/api/demo/internal/logic"
-	"github.com/q1ngy/Learn-Go/api/demo/internal/svc"
-	"github.com/q1ngy/Learn-Go/api/demo/internal/types"
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/logic"
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/svc"
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/types"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
-func DemoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+func SignupHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.Request
+		var req types.SignupRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
-		l := logic.NewDemoLogic(r.Context(), svcCtx)
-		resp, err := l.Demo(&req)
+		l := logic.NewSignupLogic(r.Context(), svcCtx)
+		resp, err := l.Signup(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

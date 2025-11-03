@@ -4,7 +4,7 @@
 package svc
 
 import (
-	"github.com/q1ngy/Learn-Go/api/demo/internal/config"
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/config"
 )
 
 type ServiceContext struct {
