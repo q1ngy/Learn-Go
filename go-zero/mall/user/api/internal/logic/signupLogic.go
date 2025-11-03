@@ -5,11 +5,19 @@ package logic
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"errors"
+	"time"
 
 	"github.com/q1ngy/Learn-Go/mall/user/api/internal/svc"
 	"github.com/q1ngy/Learn-Go/mall/user/api/internal/types"
+	"github.com/q1ngy/Learn-Go/mall/user/model"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
+
+var secret = []byte("secret")
 
 type SignupLogic struct {
 	logx.Logger
@@ -26,7 +34,33 @@ func NewSignupLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SignupLogi
 }
 
 func (l *SignupLogic) Signup(req *types.SignupRequest) (resp *types.SignupResponse, err error) {
-	// todo: add your logic here and delete this line
+	if req.RePassword != req.Password {
+		return nil, errors.New("两次输入密码不一致")
+	}
 
-	return
+	// 0.判断用户是否已注册
+	u, err := l.svcCtx.UserModel.FindOneByUsername(l.ctx, req.Username)
+	if err != nil && !errors.Is(err, sqlx.ErrNotFound) {
+		return nil, errors.New("内部错误")
+	}
+	if u != nil {
+		return nil, errors.New("用户名已存在")
+	}
+	// 1.加密
+	h := md5.New()
+	h.Write([]byte(req.Password)) // md5
+	h.Write(secret)               // 加盐
+	passwordStr := hex.EncodeToString(h.Sum(nil))
+
+	user := &model.User{
+		UserId:   time.Now().Unix(),
+		Username: req.Username,
+		Password: passwordStr,
+		Gender:   int64(req.Gender),
+	}
+	_, err = l.svcCtx.UserModel.Insert(context.Background(), user)
+	if err != nil {
+		return nil, err
+	}
+	return &types.SignupResponse{Message: "success"}, nil
 }
