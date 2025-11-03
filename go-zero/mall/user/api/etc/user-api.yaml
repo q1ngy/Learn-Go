@@ -4,3 +4,7 @@ Port: 8888
 
 Mysql:
   DataSource: root:123456@tcp(127.0.0.1:3306)/go-zero?parseTime=true
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Pass: '123456'
