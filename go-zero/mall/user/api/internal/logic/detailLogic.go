@@ -5,6 +5,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/q1ngy/Learn-Go/mall/user/api/internal/svc"
 	"github.com/q1ngy/Learn-Go/mall/user/api/internal/types"
@@ -27,6 +28,7 @@ func NewDetailLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DetailLogi
 }
 
 func (l *DetailLogic) Detail(req *types.DetailRequest) (resp *types.DetailResponse, err error) {
+	fmt.Printf("JWT userId: %v\n", l.ctx.Value("userId"))
 	userId := req.UserId
 	u, err := l.svcCtx.UserModel.FindOneByUserId(l.ctx, userId)
 	return &types.DetailResponse{Username: u.Username, Gender: u.Gender}, nil
