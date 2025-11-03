@@ -19,11 +19,35 @@ type SignupResponse {
 	Message string `json:"message"`
 }
 
+type LoginRequest {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponse {
+	Message string `json:"message"`
+}
+
+type DetailRequest {
+	UserId int64 `form:"userId"`
+}
+
+type DetailResponse {
+	Username string `json:"username"`
+	Gender   int64  `json:"gender"`
+}
+
 @server (
 	prefix: api
 )
 service user-api {
 	@handler SignupHandler
 	post /user/signup (SignupRequest) returns (SignupResponse)
+
+	@handler LoginHandler
+	post /user/login (LoginRequest) returns (LoginResponse)
+
+	@handler DetailHandler
+	get /user/detail (DetailRequest) returns (DetailResponse)
 }
 

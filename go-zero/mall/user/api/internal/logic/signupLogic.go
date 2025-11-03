@@ -38,9 +38,16 @@ func (l *SignupLogic) Signup(req *types.SignupRequest) (resp *types.SignupRespon
 		return nil, errors.New("两次输入密码不一致")
 	}
 
+	logx.Infov(req) // json.Marshal(req)
+	logx.Infof("req: %#v", req)
+
 	// 0.判断用户是否已注册
 	u, err := l.svcCtx.UserModel.FindOneByUsername(l.ctx, req.Username)
 	if err != nil && !errors.Is(err, sqlx.ErrNotFound) {
+		logx.Errorw(
+			"内部错误",
+			logx.Field("err", err),
+		)
 		return nil, errors.New("内部错误")
 	}
 	if u != nil {

@@ -3,6 +3,24 @@
 
 package types
 
+type DetailRequest struct {
+	UserId int64 `form:"userId"`
+}
+
+type DetailResponse struct {
+	Username string `json:"username"`
+	Gender   int64  `json:"gender"`
+}
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Message string `json:"message"`
+}
+
 type SignupRequest struct {
 	Username   string `json:"username"`
 	Password   string `json:"password"`
