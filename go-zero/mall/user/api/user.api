@@ -52,8 +52,9 @@ service user-api {
 }
 
 @server (
-	prefix: api
-	jwt:    Auth
+	prefix:     api
+	jwt:        Auth
+	middleware: Cost
 )
 service user-api {
 	@handler DetailHandler

@@ -9,6 +9,7 @@ import (
 
 	"github.com/q1ngy/Learn-Go/mall/user/api/internal/config"
 	"github.com/q1ngy/Learn-Go/mall/user/api/internal/handler"
+	"github.com/q1ngy/Learn-Go/mall/user/api/internal/middleware"
 	"github.com/q1ngy/Learn-Go/mall/user/api/internal/svc"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
@@ -24,6 +25,9 @@ func main() {
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
+
+	server.Use(middleware.CopyResp)
+	server.Use(middleware.MiddlewareWithAnotherService(true))
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
