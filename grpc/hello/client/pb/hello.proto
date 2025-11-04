@@ -1,11 +1,14 @@
 syntax = "proto3";
 
-option go_package = "hello_client/pb";
+option go_package = "hello/pb";
 
 package pb;
 
 service Greeter {
   rpc SayHello(HelloReq) returns (HelloResp) {}
+  rpc LotsOfReplies(HelloReq) returns (stream HelloResp) {}
+  rpc LotsOfGreetings(stream HelloReq) returns (HelloResp){}
+  rpc BidiHello(stream HelloReq) returns (stream HelloResp){}
 }
 
 message HelloReq {

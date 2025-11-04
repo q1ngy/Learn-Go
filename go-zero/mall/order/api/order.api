@@ -1,0 +1,28 @@
+syntax = "v1"
+
+info (
+	title:   "mall order"
+	desc:    "go-zero learning"
+	author:  "qingy"
+	email:   "123@123.com"
+	version: "1.0.0"
+)
+
+type searchRequest {
+	OrderID string `form:"orderId"`
+}
+
+type searchResponse {
+	OrderID  string `json:"orderId"`
+	Status   int    `json:"status"`
+	Username string `json:"username"`
+}
+
+@server (
+	prefix: api
+)
+service order-api {
+	@handler searchHandler
+	get /order/search (searchRequest) returns (searchResponse)
+}
+
