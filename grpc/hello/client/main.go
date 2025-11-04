@@ -13,6 +13,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
@@ -29,7 +30,8 @@ func main() {
 	//sayHello(c, ctx)
 	//streamSayHello(c, ctx)
 	//clientStream(c, ctx)
-	runBidiHello(c, ctx)
+	//runBidiHello(c, ctx)
+	sayHelloWithMD(c, ctx)
 }
 
 func clientStream(c pb.GreeterClient, ctx context.Context) {
@@ -115,4 +117,22 @@ func runBidiHello(c pb.GreeterClient, ctx context.Context) {
 	}
 	stream.CloseSend()
 	<-waitc
+}
+
+func sayHelloWithMD(c pb.GreeterClient, ctx context.Context) {
+	md := metadata.Pairs(
+		"token", "my-token",
+	)
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	var header, trailer metadata.MD
+	resp, err := c.SayHello(ctx, &pb.HelloReq{Name: "slim"},
+		grpc.Header(&header),
+		grpc.Trailer(&trailer))
+	fmt.Printf("metadata header: %v, trailer: %v\n", header, trailer)
+
+	if err != nil {
+		log.Fatalf("SayHello failed, err: %v\n", err)
+	}
+	log.Printf("resp: %v", resp.GetReply())
+
 }

@@ -6,9 +6,14 @@ import (
 	"io"
 	"log"
 	"net"
+	"strconv"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 type server struct {
@@ -16,7 +21,31 @@ type server struct {
 }
 
 func (s *server) SayHello(ctx context.Context, in *pb.HelloReq) (*pb.HelloResp, error) {
+	defer func() {
+		trailer := metadata.Pairs(
+			"timestamp", strconv.Itoa(int(time.Now().Unix())),
+		)
+		grpc.SetTrailer(ctx, trailer)
+	}()
+	// metadata
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "无效请求")
+	}
+	v := md.Get("token")
+	if len(v) < 1 || v[0] != "my-token" {
+		return nil, status.Error(codes.Unauthenticated, "无效 token")
+	}
+	//if v, ok := md["token"]; ok {
+
 	reply := "hello " + in.Name
+
+	// 发送数据前发送header
+	header := metadata.New(map[string]string{
+		"location": "北京",
+	})
+	grpc.SetHeader(ctx, header)
+
 	return &pb.HelloResp{Reply: reply}, nil
 }
 
