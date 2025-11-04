@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"hello_server/pb"
 	"io"
 	"log"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -18,16 +21,20 @@ import (
 
 type server struct {
 	pb.UnimplementedGreeterServer
+	mu    sync.Mutex
+	count map[string]int
 }
 
 func (s *server) SayHello(ctx context.Context, in *pb.HelloReq) (*pb.HelloResp, error) {
+	// metadata
 	defer func() {
+		// 发送结束后发送trailer
 		trailer := metadata.Pairs(
 			"timestamp", strconv.Itoa(int(time.Now().Unix())),
 		)
 		grpc.SetTrailer(ctx, trailer)
 	}()
-	// metadata
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "无效请求")
@@ -38,7 +45,30 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloReq) (*pb.HelloResp, 
 	}
 	//if v, ok := md["token"]; ok {
 
-	reply := "hello " + in.Name
+	name := in.GetName()
+	s.mu.Lock()
+	s.count[name]++
+	s.mu.Unlock()
+	if s.count[name] > 1 {
+		// grpc status
+		st := status.New(codes.ResourceExhausted, "name request limit")
+		// detail
+		ds, err := st.WithDetails(
+			&errdetails.QuotaFailure{
+				Violations: []*errdetails.QuotaFailure_Violation{{
+					Subject:     fmt.Sprintf("name:%s", in.Name),
+					Description: "限制每个name调用一次",
+				}},
+			},
+		)
+		if err != nil {
+			return nil, st.Err()
+		}
+
+		return nil, ds.Err()
+	}
+
+	reply := "hello " + name
 
 	// 发送数据前发送header
 	header := metadata.New(map[string]string{
@@ -127,7 +157,7 @@ func main() {
 		return
 	}
 	s := grpc.NewServer()
-	pb.RegisterGreeterServer(s, &server{})
+	pb.RegisterGreeterServer(s, &server{count: make(map[string]int)})
 	err = s.Serve(l)
 	if err != nil {
 		log.Printf("failed to server, err: %v\n", err)

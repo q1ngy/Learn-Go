@@ -11,9 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -31,7 +33,7 @@ func main() {
 	//streamSayHello(c, ctx)
 	//clientStream(c, ctx)
 	//runBidiHello(c, ctx)
-	sayHelloWithMD(c, ctx)
+	sayHelloWithMDAndStatus(c, ctx)
 }
 
 func clientStream(c pb.GreeterClient, ctx context.Context) {
@@ -119,7 +121,7 @@ func runBidiHello(c pb.GreeterClient, ctx context.Context) {
 	<-waitc
 }
 
-func sayHelloWithMD(c pb.GreeterClient, ctx context.Context) {
+func sayHelloWithMDAndStatus(c pb.GreeterClient, ctx context.Context) {
 	md := metadata.Pairs(
 		"token", "my-token",
 	)
@@ -131,7 +133,17 @@ func sayHelloWithMD(c pb.GreeterClient, ctx context.Context) {
 	fmt.Printf("metadata header: %v, trailer: %v\n", header, trailer)
 
 	if err != nil {
-		log.Fatalf("SayHello failed, err: %v\n", err)
+		s := status.Convert(err)        // 将err转为status
+		for _, d := range s.Details() { // 获取details
+			switch info := d.(type) {
+			case *errdetails.QuotaFailure:
+				fmt.Printf("Quota failure: %s\n", info)
+			default:
+				fmt.Printf("Unexpected type: %s\n", info)
+			}
+		}
+		fmt.Printf("c.SayHello failed, err:%v\n", err)
+		return
 	}
 	log.Printf("resp: %v", resp.GetReply())
 
